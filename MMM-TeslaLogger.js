@@ -53,12 +53,14 @@ Module.register("MMM-TeslaLogger", {
 		displayIs_user_present: false,
 		displayPlugged_in: false,
 		displayScheduled_charging_start_time: false,
+		displaymonthly_costs_so_far: false,
 
 		unitState: "",
 		unitSpeed: "km/h",
 		unitPower: "kW",
 		unitOdometer: "km",
 		unitIdeal_battery_range_km: "km",
+		unitmonthly_costs_so_far: "CHF",
 		unitOutside_temp: "°C",
 		unitBattery_level: "%",
 		unitCharger_voltage: "V",
@@ -108,6 +110,7 @@ Module.register("MMM-TeslaLogger", {
 		Power: 0,
 		Odometer: 0,
 		Ideal_battery_range_km: 0,
+		monthly_costs_so_far: 0,
 		Outside_temp: 0,
 		Battery_level: 0,
 		Charger_voltage: 0,
@@ -204,6 +207,7 @@ Module.register("MMM-TeslaLogger", {
 					this.TeslaJSON.Power = get(JSON.parse(value), "/power");
 					this.TeslaJSON.Odometer = get(JSON.parse(value), "/odometer");
 					this.TeslaJSON.Ideal_battery_range_km = get(JSON.parse(value), "/ideal_battery_range_km");
+					this.TeslaJSON.monthly_costs_so_far = get(JSON.parse(value), "/monthly_costs_so_far");
 					this.TeslaJSON.Outside_temp = get(JSON.parse(value), "/outside_temp");
 					this.TeslaJSON.Battery_level = get(JSON.parse(value), "/battery_level");
 					this.TeslaJSON.Charger_voltage = get(JSON.parse(value), "/charger_voltage");
@@ -270,6 +274,10 @@ Module.register("MMM-TeslaLogger", {
 
 					if (payload.topic.substr(17) === "ideal_battery_range_km") {
 						this.TeslaJSON.Ideal_battery_range_km = value;
+					}
+
+					if (payload.topic.substr(17) === "monthly_costs_so_far") {
+						this.TeslaJSON.monthly_costs_so_far = value;
 					}
 
 					if (payload.topic.substr(17) === "outside_temp") {
@@ -402,7 +410,7 @@ Module.register("MMM-TeslaLogger", {
 				}
 				else {
 					this.TeslaJSON.OdometerCalc = this.TeslaJSON.Odometer;
-					
+
 				}
 
 				this.TeslaJSON.TimeOfStatus = payload.time;
@@ -790,6 +798,28 @@ Module.register("MMM-TeslaLogger", {
 
 			suffix = document.createElement("td");
 			suffix.innerHTML = self.config.unitIdeal_battery_range_km;
+			suffix.className = "align-left TeslaLogger-suffix";
+
+			row.appendChild(label);
+			row.appendChild(value);
+			row.appendChild(suffix);
+
+			table.appendChild(row);
+		}
+
+		if (self.config.displaymonthly_costs_so_far) {
+			row = document.createElement("tr");
+
+			label = document.createElement("td");
+			label.innerHTML = self.translate("MONTHLY_COSTS_SO_FAR");
+			label.className = "align-left TeslaLogger-label";
+
+			value = document.createElement("td");
+			value.innerHTML = Math.round(self.TeslaJSON.monthly_costs_so_far);
+			value.className = "align-right TeslaLogger-value " + (tooOld ? "dimmed" : "bright");
+
+			suffix = document.createElement("td");
+			suffix.innerHTML = self.config.unitmonthly_costs_so_far;
 			suffix.className = "align-left TeslaLogger-suffix";
 
 			row.appendChild(label);
@@ -1442,6 +1472,10 @@ Module.register("MMM-TeslaLogger", {
 				content = content + ", " + Math.round(self.TeslaJSON.Ideal_battery_range_km) + " " + self.config.unitIdeal_battery_range_km;
 			}
 
+			if (self.config.displaymonthly_costs_so_far) {
+				content = content + ", " + Math.round(self.TeslaJSON.monthly_costs_so_far) + " " + self.config.unitmonthly_costs_so_far;
+			}
+
 			if (self.config.displayCharge_limit_soc) {
 				content = content + ", " + self.translate("MAX") + " " + self.TeslaJSON.Charge_limit_soc + " " + self.config.unitCharge_limit_soc;
 			}
@@ -1614,7 +1648,7 @@ Module.register("MMM-TeslaLogger", {
 
 			contentDiv.innerHTML = content;
 			value.appendChild(contentDiv);
-			
+
 			if (self.config.displayIs_preconditioning && self.TeslaJSON.Is_preconditioning) {
 				symbol = document.createElement("i");
 				symbol.className = "align-left fa fa-fw fa-snowflake";
@@ -1842,7 +1876,7 @@ Module.register("MMM-TeslaLogger", {
 		if (self.TeslaJSON.Sentry_mode === true) {
 			valueRight.appendChild(symbol);
 		}
-		
+
 		symbol = document.createElement("i");
 		if (self.TeslaJSON.lock === false) {
 			symbol.className = "align-left fa fa-fw fa-unlock";
@@ -2029,8 +2063,8 @@ Module.register("MMM-TeslaLogger", {
 	},
 
 	// ------------------------------------------------------------------------
-	// the next three functions are not adapted to the 
-	// variable label structure of MMM-TeslaLogger 
+	// the next three functions are not adapted to the
+	// variable label structure of MMM-TeslaLogger
 	// and come unchanged from MMM-MQTT
 	// They were left in the code to make future needs easier to realize. :-)
 	// -------------------------------------------------------------------------
@@ -2081,8 +2115,8 @@ Module.register("MMM-TeslaLogger", {
 	},
 
 	// ------------------------------------------------------------------------
-	// the previous three functions are not adapted to the 
-	// variable label structure of MMM-TeslaLogger 
+	// the previous three functions are not adapted to the
+	// variable label structure of MMM-TeslaLogger
 	// and come unchanged from MMM-MQTT
 	// They were left in the code to make future needs easier to realize. :-)
 	// ------------------------------------------------------------------------
